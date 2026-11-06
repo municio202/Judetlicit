@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Județlicit — România se vinde. Bucată cu bucată.</title>
+  <meta name="description" content="În curând vei putea cumpăra orice județ din România. Dar dacă altcineva plătește de 1.5x mai mult... îl pierzi." />
+  <meta name="theme-color" content="#05070d" />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="România se vinde. Bucată cu bucată." />
+  <meta property="og:description" content="42 de județe. Licitare 1.5x. Război total pe hartă. Fără iertare." />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 28 9v14L16 30 4 23V9z' fill='%2305070d' stroke='%2322e6ff' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23ffe14a'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================
+       1. DESIGN TOKENS
+       ========================================================== */
+    :root {
+      --bg: #05070d;
+      --bg-2: #0a0f1a;
+      --panel: rgba(11, 17, 29, 0.72);
+      --panel-solid: #0b111d;
+      --line: rgba(120, 200, 255, 0.14);
+      --line-strong: rgba(34, 230, 255, 0.35);
+
+      --cyan: #22e6ff;
+      --yellow: #ffe14a;
+      --red: #ff3b5c;
+      --blue: #3d6bff;
+
+      --text: #e8f1ff;
+      --muted: #8a9bb5;
+      --dim: #56657d;
+
+      --radius: 16px;
+      --font-sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ==========================================================
+       2. BASE
+       ========================================================== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input { font: inherit; color: inherit; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    /* Ambient background: tricolor glows + tactical grid + scanlines */
+    .bg {
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background:
+        radial-gradient(60vmax 50vmax at 0% 0%, rgba(61, 107, 255, 0.16), transparent 60%),
+        radial-gradient(50vmax 40vmax at 100% 30%, rgba(255, 225, 74, 0.07), transparent 60%),
+        radial-gradient(60vmax 50vmax at 80% 110%, rgba(255, 59, 92, 0.12), transparent 60%),
+        var(--bg);
+    }
+    .bg::after {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
+      opacity: 0.45;
+    }
+    .scanlines {
+      position: fixed; inset: 0; z-index: 50; pointer-events: none;
+      background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px);
+      mix-blend-mode: overlay;
+    }
+
+    /* ==========================================================
+       3. TOP BAR
+       ========================================================== */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      padding-top: max(14px, env(safe-area-inset-top));
+      background: linear-gradient(to bottom, rgba(5,7,13,0.92), rgba(5,7,13,0.6));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .logo {
+      display: inline-flex; align-items: center; gap: 10px;
+      text-decoration: none; font-weight: 700; letter-spacing: 0.06em; font-size: 15px;
+    }
+    .logo svg { width: 26px; height: 26px; flex: none; filter: drop-shadow(0 0 6px rgba(34,230,255,0.6)); }
+    .logo .accent { color: var(--cyan); }
+    .logo .ver {
+      font-family: var(--font-mono); font-weight: 400; font-size: 10px; letter-spacing: 0.04em;
+      color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 7px;
+    }
+    .tricolor-stripe { display: inline-flex; height: 3px; width: 26px; border-radius: 2px; overflow: hidden; }
+    .tricolor-stripe i { flex: 1; }
+    .tricolor-stripe i:nth-child(1) { background: var(--blue); }
+    .tricolor-stripe i:nth-child(2) { background: var(--yellow); }
+    .tricolor-stripe i:nth-child(3) { background: var(--red); }
+
+    /* Language toggle */
+    .lang-toggle {
+      position: relative; display: inline-grid; grid-template-columns: 1fr 1fr;
+      padding: 3px; border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+    }
+    .lang-toggle button {
+      position: relative; z-index: 1;
+      min-width: 44px; padding: 7px 12px;
+      background: none; border: 0; border-radius: 999px; cursor: pointer;
+      color: var(--muted); letter-spacing: 0.1em;
+      transition: color 0.3s var(--ease);
+    }
+    .lang-toggle button[aria-pressed="true"] { color: #031018; }
+    .lang-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+    .lang-indicator {
+      position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px);
+      border-radius: 999px; background: var(--cyan);
+      box-shadow: 0 0 18px rgba(34,230,255,0.55);
+      transition: transform 0.4s var(--ease);
+    }
+    .lang-toggle[data-active="hu"] .lang-indicator { transform: translateX(100%); }
+
+    /* ==========================================================
+       4. BADGE TICKER (marquee)
+       ========================================================== */
+    .ticker {
+      position: relative; overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(61,107,255,0.08), rgba(255,225,74,0.06), rgba(255,59,92,0.08));
+      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    }
+    .ticker-track {
+      display: flex; width: max-content;
+      animation: marquee 28s linear infinite;
+    }
+    .ticker:hover .ticker-track { animation-play-state: paused; }
+    .ticker-item {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 22px; white-space: nowrap;
+      font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .ticker-item::before { content: "◆"; font-size: 9px; }
+    .ticker-item:nth-child(4n+1)::before { color: var(--cyan); }
+    .ticker-item:nth-child(4n+2)::before { color: var(--yellow); }
+    .ticker-item:nth-child(4n+3)::before { color: var(--red); }
+    .ticker-item:nth-child(4n+4)::before { color: var(--blue); }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    /* ==========================================================
+       5. LAYOUT
+       ========================================================== */
+    .layout {
+      width: 100%; max-width: 1200px; margin: 0 auto;
+      padding: 28px 16px 40px;
+      display: grid; gap: 28px;
+      grid-template-areas: "hero" "cta" "intel";
+    }
+    .hero  { grid-area: hero; }
+    .cta   { grid-area: cta; }
+    .intel { grid-area: intel; display: grid; gap: 16px; align-content: start; }
+
+    @media (min-width: 960px) {
+      .layout {
+        padding-top: 56px;
+        grid-template-columns: 1.05fr 1fr;
+        grid-template-areas: "hero intel" "cta intel";
+        column-gap: 56px; row-gap: 32px;
+      }
+    }
+
+    /* Reveal-on-load */
+    .reveal { opacity: 0; transform: translateY(14px); animation: reveal 0.9s var(--ease) forwards; }
+    .reveal.d1 { animation-delay: 0.08s; }
+    .reveal.d2 { animation-delay: 0.18s; }
+    .reveal.d3 { animation-delay: 0.3s; }
+    .reveal.d4 { animation-delay: 0.42s; }
+    @keyframes reveal { to { opacity: 1; transform: none; } }
+
+    /* i18n swap fade */
+    [data-i18n], [data-i18n-html] { transition: opacity 0.25s ease; }
+    body.is-switching [data-i18n], body.is-switching [data-i18n-html] { opacity: 0; }
+
+    /* ==========================================================
+       6. HERO
+       ========================================================== */
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; margin: 0 0 18px;
+      padding: 6px 12px; border-radius: 999px;
+      border: 1px solid var(--line); background: rgba(255,255,255,0.03);
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex: none;
+      box-shadow: 0 0 0 0 rgba(255,59,92,0.7);
+      animation: livePulse 1.6s ease-out infinite;
+    }
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,59,92,0.7); }
+      100% { box-shadow: 0 0 0 10px rgba(255,59,92,0); }
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: clamp(2.4rem, 10.5vw, 4.6rem);
+      line-height: 0.98; letter-spacing: -0.035em; font-weight: 700;
+    }
+    h1 span { display: block; }
+    h1 .h1b {
+      background: linear-gradient(100deg, var(--cyan) 0%, #9ff6ff 30%, var(--yellow) 55%, var(--cyan) 100%);
+      background-size: 220% 100%;
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+      animation: shimmer 7s linear infinite;
+      filter: drop-shadow(0 0 22px rgba(34,230,255,0.25));
+    }
+    @keyframes shimmer { to { background-position: -220% 0; } }
+
+    .sub {
+      margin: 0; max-width: 34em;
+      font-size: clamp(1rem, 3.9vw, 1.14rem); color: #c3d0e4;
+    }
+    .sub mark {
+      background: none; color: var(--text); font-weight: 600;
+      box-shadow: inset 0 -0.42em 0 rgba(34,230,255,0.22);
+    }
+    .sub .hl { color: var(--yellow); font-weight: 700; text-shadow: 0 0 14px rgba(255,225,74,0.45); }
+    .sub em { font-style: normal; color: var(--red); font-weight: 600; }
+
+    /* ==========================================================
+       7. COUNTDOWN + PROGRESS + FORM
+       ========================================================== */
+    .panel {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    /* tactical corner brackets */
+    .panel.brackets::before, .panel.brackets::after {
+      content: ""; position: absolute; width: 14px; height: 14px; pointer-events: none;
+      border-color: var(--cyan); border-style: solid; opacity: 0.8;
+    }
+    .panel.brackets::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-top-left-radius: var(--radius); }
+    .panel.brackets::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-bottom-right-radius: var(--radius); }
+
+    .cta-card { padding: 20px 16px; }
+    @media (min-width: 480px) { .cta-card { padding: 24px; } }
+
+    .label {
+      margin: 0 0 12px;
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+    .cd-cell {
+      text-align: center; padding: 12px 4px 10px;
+      border-radius: 12px; border: 1px solid var(--line);
+      background: linear-gradient(to bottom, rgba(34,230,255,0.06), rgba(34,230,255,0.01));
+      overflow: hidden;
+    }
+    .cd-num {
+      display: block;
+      font-family: var(--font-mono); font-weight: 600;
+      font-size: clamp(1.6rem, 8vw, 2.3rem); line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      text-shadow: 0 0 18px rgba(34,230,255,0.35);
+    }
+    .cd-num.tick { animation: tick 0.45s var(--ease); }
+    @keyframes tick { from { transform: translateY(-40%); opacity: 0.2; } to { transform: none; opacity: 1; } }
+    .cd-cell:last-child .cd-num { color: var(--yellow); text-shadow: 0 0 18px rgba(255,225,74,0.35); }
+    .cd-lbl {
+      display: block; margin-top: 4px;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+    }
+    .cd-done {
+      display: none; margin: 0 0 20px; padding: 14px; text-align: center; border-radius: 12px;
+      border: 1px dashed var(--yellow); color: var(--yellow);
+      font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .is-launched .countdown { display: none; }
+    .is-launched .cd-done { display: block; }
+
+    .progress { margin-bottom: 0; }
+    .progress-head {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px;
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--muted);
+    }
+    .progress-head strong { color: var(--cyan); font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .progress-bar {
+      position: relative; height: 8px; border-radius: 999px; overflow: hidden;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+    }
+    .progress-fill {
+      position: absolute; inset: 0 auto 0 0; width: 94%;
+      background: linear-gradient(90deg, var(--blue), var(--cyan) 60%, var(--yellow));
+      box-shadow: 0 0 16px rgba(34,230,255,0.55);
+      transition: width 1.2s var(--ease);
+    }
+    .progress-fill::after {
+      content: ""; position: absolute; inset: 0;
+      background: repeating-linear-gradient(-45deg, rgba(255,255,255,0.18) 0 6px, transparent 6px 12px);
+      animation: stripes 1s linear infinite;
+    }
+    @keyframes stripes { to { background-position: 17px 0; } }
+    .progress-status {
+      margin-top: 8px; min-height: 1.4em;
+      font-family: var(--font-mono); font-size: 11px; color: var(--dim);
+      transition: opacity 0.3s ease;
+    }
+
+    /* ==========================================================
+       8. MAP CARD
+       ========================================================== */
+    .map-card { padding: 14px; overflow: hidden; }
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin-bottom: 8px; padding: 0 2px;
+    }
+    .card-title {
+      margin: 0; font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--text);
+    }
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 8px; border-radius: 6px;
+      font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+      color: var(--red); background: rgba(255,59,92,0.1); border: 1px solid rgba(255,59,92,0.35);
+    }
+    .live-badge .live-dot { width: 6px; height: 6px; }
+
+    .map-wrap { position: relative; border-radius: 12px; overflow: hidden; isolation: isolate; }
+    .map-wrap::before {
+      /* concentric range rings */
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background: repeating-radial-gradient(circle at 50% 50%, transparent 0 46px, rgba(34,230,255,0.06) 46px 47px);
+    }
+    .radar {
+      position: absolute; left: 50%; top: 50%; width: 160%; aspect-ratio: 1; z-index: 2;
+      transform: translate(-50%, -50%);
+      background: conic-gradient(from 0deg, transparent 0deg, transparent 290deg, rgba(34,230,255,0.05) 320deg, rgba(34,230,255,0.28) 359deg, transparent 360deg);
+      border-radius: 50%;
+      animation: radar 6s linear infinite;
+      pointer-events: none; mix-blend-mode: screen;
+    }
+    @keyframes radar { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    #map { display: block; width: 100%; height: auto; position: relative; z-index: 1; }
+    .ro-fill { fill: rgba(34,230,255,0.025); }
+    .ro-outline {
+      fill: none; stroke: var(--cyan); stroke-width: 2.5; stroke-linejoin: round;
+      animation: outlinePulse 3.2s ease-in-out infinite;
+    }
+    @keyframes outlinePulse {
+      0%, 100% { stroke-opacity: 0.55; }
+      50% { stroke-opacity: 1; }
+    }
+    .ro-dash {
+      fill: none; stroke: var(--yellow); stroke-width: 2; stroke-linecap: round;
+      stroke-dasharray: 40 1800; animation: dash 9s linear infinite; opacity: 0.9;
+    }
+    @keyframes dash { to { stroke-dashoffset: -1840; } }
+
+    .hex {
+      fill: rgba(34,230,255,0.035);
+      stroke: rgba(34,230,255,0.16); stroke-width: 1;
+      transition: fill 0.9s ease, stroke 0.9s ease;
+    }
+    .hex.c-cyan   { fill: rgba(34,230,255,0.55);  stroke: rgba(34,230,255,0.9); }
+    .hex.c-yellow { fill: rgba(255,225,74,0.55);  stroke: rgba(255,225,74,0.9); }
+    .hex.c-red    { fill: rgba(255,59,92,0.55);   stroke: rgba(255,59,92,0.9); }
+    .hex.c-blue   { fill: rgba(61,107,255,0.55);  stroke: rgba(61,107,255,0.9); }
+
+    .region circle { fill: var(--text); opacity: 0.7; transition: fill 0.3s, opacity 0.3s; }
+    .region text {
+      font-family: var(--font-mono); font-size: 21px; font-weight: 600; letter-spacing: 0.06em;
+      fill: var(--text); opacity: 0.55; paint-order: stroke; stroke: var(--bg); stroke-width: 5px;
+      text-transform: uppercase; transition: fill 0.3s, opacity 0.3s;
+    }
+    .region.active circle { fill: var(--yellow); opacity: 1; }
+    .region.active text { fill: var(--yellow); opacity: 1; }
+
+    .ping-ring {
+      fill: none; stroke-width: 3; vector-effect: non-scaling-stroke;
+      transform-box: fill-box; transform-origin: center;
+      animation: ping 1.8s var(--ease) forwards;
+    }
+    .ping-ring.r2 { animation-delay: 0.35s; opacity: 0; }
+    @keyframes ping {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(7); opacity: 0; }
+    }
+
+    .map-foot {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px;
+      margin-top: 10px; padding: 0 2px;
+      font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); letter-spacing: 0.05em;
+    }
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+
+    /* ==========================================================
+       9. TERMINAL
+       ========================================================== */
+    .terminal { overflow: hidden; font-family: var(--font-mono); }
+    .term-head {
+      display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+      border-bottom: 1px solid var(--line); background: rgba(0,0,0,0.25);
+      font-size: 11px; color: var(--muted);
+    }
+    .term-head .dots { display: inline-flex; gap: 6px; margin-right: 4px; }
+    .term-head .dots i { width: 9px; height: 9px; border-radius: 50%; display: block; }
+    .term-head .dots i:nth-child(1) { background: var(--red); }
+    .term-head .dots i:nth-child(2) { background: var(--yellow); }
+    .term-head .dots i:nth-child(3) { background: var(--cyan); }
+    .term-head .uptime { margin-left: auto; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+    .term-body {
+      list-style: none; margin: 0; padding: 12px 14px 14px;
+      height: calc(5 * 2.55em + 1.6em);
+      display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+      font-size: 12px; line-height: 1.45;
+      overflow: hidden;
+      mask-image: linear-gradient(to bottom, transparent, #000 32%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 32%);
+    }
+    .term-line {
+      display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: baseline;
+      animation: lineIn 0.6s var(--ease) both;
+      color: #b9c6da;
+    }
+    .term-line:last-child { color: var(--text); }
+    .term-line:last-child .t-msg::after {
+      content: "▋"; margin-left: 4px; color: var(--cyan);
+      animation: caret 1s steps(1) infinite;
+    }
+    @keyframes caret { 50% { opacity: 0; } }
+    @keyframes lineIn { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+    .t-time { color: var(--dim); font-variant-numeric: tabular-nums; }
+    .t-tag {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+      padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor;
+    }
+    .t-bid   { color: var(--cyan); }
+    .t-claim { color: var(--yellow); }
+    .t-war   { color: var(--red); }
+    .t-sys   { color: var(--muted); }
+
+    @media (max-width: 420px) {
+      .t-time { display: none; }
+      .term-line { grid-template-columns: auto 1fr; }
+    }
+
+    /* ==========================================================
+       10. FOOTER
+       ========================================================== */
+    .footer {
+      max-width: 1200px; margin: 0 auto;
+      padding: 24px 16px calc(28px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+      font-size: 12px; color: var(--dim);
+    }
+    @media (min-width: 720px) {
+      .footer { flex-direction: row; justify-content: space-between; text-align: left; }
+    }
+    .socials { display: flex; align-items: center; gap: 10px; }
+    .socials-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-right: 4px; }
+    .social {
+      display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+      border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--muted);
+      transition: color 0.2s, border-color 0.2s, transform 0.2s var(--ease), box-shadow 0.2s;
+    }
+    .social svg { width: 18px; height: 18px; }
+    .social:hover, .social:focus-visible {
+      color: var(--cyan); border-color: var(--line-strong); transform: translateY(-2px);
+      box-shadow: 0 6px 20px -8px rgba(34,230,255,0.6); outline: none;
+    }
+
+    /* ==========================================================
+       11. REDUCED MOTION
+       ========================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .radar, .ticker-track, .ro-dash { animation: none !important; }
+      .ticker-track { flex-wrap: wrap; width: auto; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="topbar">
+    <a class="logo" href="#" aria-label="Județlicit">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 2 28 9v14L16 30 4 23V9z" fill="none" stroke="#22e6ff" stroke-width="2.2" />
+        <circle cx="16" cy="16" r="4" fill="#ffe14a" />
+      </svg>
+      <span>JUDEȚ<span class="accent">LICIT</span></span>
+      <span class="tricolor-stripe" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="ver">v0.42</span>
+    </a>
+
+    <div class="lang-toggle" role="group" aria-label="Limbă / Nyelv" data-active="ro">
+      <span class="lang-indicator" aria-hidden="true"></span>
+      <button type="button" data-lang="ro" aria-pressed="true" lang="ro">RO</button>
+      <button type="button" data-lang="hu" aria-pressed="false" lang="hu">HU</button>
+    </div>
+  </header>
+
+  <!-- ===================== BADGE TICKER ===================== -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+  <ul class="sr-only" id="badgesSr"></ul>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="layout">
+
+    <!-- HERO -->
+    <section class="hero" aria-labelledby="headline">
+      <p class="eyebrow reveal">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span data-i18n="eyebrow"></span>
+      </p>
+      <h1 id="headline" class="reveal d1">
+        <span data-i18n="h1a"></span>
+        <span class="h1b" data-i18n="h1b"></span>
+      </h1>
+      <p class="sub reveal d2" data-i18n-html="sub"></p>
+    </section>
+
+    <!-- CTA: countdown + progress -->
+    <section class="cta reveal d3" aria-labelledby="cdTitle">
+      <div class="panel brackets cta-card" id="ctaCard">
+        <p class="label" id="cdTitle" data-i18n="countdownTitle"></p>
+
+        <div class="countdown" role="timer" aria-live="off">
+          <div class="cd-cell"><span class="cd-num" id="cdDays">00</span><span class="cd-lbl" data-i18n="days"></span></div>
+          <div class="cd-cell"><span class="cd-num" id="cdHours">00</span><span class="cd-lbl" data-i18n="hours"></span></div>
+          <div class="cd-cell"><span class="cd-num" id="cdMinutes">00</span><span class="cd-lbl" data-i18n="minutes"></span></div>
+          <div class="cd-cell"><span class="cd-num" id="cdSeconds">00</span><span class="cd-lbl" data-i18n="seconds"></span></div>
+        </div>
+        <p class="cd-done" data-i18n="launched"></p>
+
+        <div class="progress">
+          <div class="progress-head">
+            <span data-i18n="progressLabel"></span>
+            <strong id="progressValue">94.0%</strong>
+          </div>
+          <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="94" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-status" id="progressStatus"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTEL: map + terminal -->
+    <section class="intel reveal d4" aria-label="Live">
+      <div class="panel brackets map-card">
+        <div class="card-head">
+          <h2 class="card-title" data-i18n="mapTitle"></h2>
+          <span class="live-badge"><span class="live-dot" aria-hidden="true"></span>LIVE</span>
+        </div>
+
+        <div class="map-wrap" aria-hidden="true">
+          <div class="radar"></div>
+          <svg id="map" viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="5" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <clipPath id="roClip"><path id="roClipPath" /></clipPath>
+            </defs>
+            <path class="ro-fill" id="roFill" />
+            <g id="hexLayer" clip-path="url(#roClip)"></g>
+            <path class="ro-outline" id="roOutline" filter="url(#glow)" />
+            <path class="ro-dash" id="roDash" />
+            <g id="regionLayer"></g>
+            <g id="pingLayer"></g>
+          </svg>
+        </div>
+
+        <div class="map-foot">
+          <span data-i18n="mapStatus"></span>
+          <div class="legend">
+            <span><i style="background:var(--cyan)"></i><span data-i18n="legendBid"></span></span>
+            <span><i style="background:var(--yellow)"></i><span data-i18n="legendClaim"></span></span>
+            <span><i style="background:var(--red)"></i><span data-i18n="legendWar"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel terminal">
+        <div class="term-head">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>~/judetlicit/live_feed.log</span>
+          <span class="uptime" id="uptime">00:00:00</span>
+        </div>
+        <ol class="term-body" id="terminal" role="log" aria-live="off"></ol>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <span data-i18n="footer" id="footerText"></span>
+    <div class="socials">
+      <span class="socials-label" data-i18n="follow"></span>
+      <!-- TODO: replace href with real profile URLs -->
+      <a class="social" href="#" target="_blank" rel="noopener" aria-label="TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 2h-3.3v13.2a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9a6.3 6.3 0 1 0 5.3 6.2V8.6a7.6 7.6 0 0 0 4.4 1.4V6.7a4.4 4.4 0 0 1-4.4-4.4z"/></svg>
+      </a>
+      <a class="social" href="#" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
+  </footer>
+
+  <script>
+  (() => {
+    "use strict";
+
+    /* ============================================================
+       CONFIG — edit these before going live
+       ============================================================ */
+    const CONFIG = {
+      // Launch moment (Romania is UTC+2 in winter, UTC+3 in summer)
+      LAUNCH_DATE: "2026-11-13T20:00:00+02:00",
+      DEFAULT_LANG: "ro",
+      TERMINAL_INTERVAL_MS: 3200,
+      TERMINAL_MAX_LINES: 5,
+      STORAGE_KEYS: { lang: "jl_lang" },
+    };
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+    const rand = (min, max) => Math.random() * (max - min) + min;
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const pad = (n) => String(n).padStart(2, "0");
+
+    const storage = {
+      get(key) { try { return localStorage.getItem(key); } catch { return null; } },
+      set(key, val) { try { localStorage.setItem(key, val); } catch { /* private mode */ } },
+    };
+
+    /* ============================================================
+       I18N DICTIONARY
+       ============================================================ */
+    const I18N = {
+      ro: {
+        title: "Județlicit — România se vinde. Bucată cu bucată.",
+        eyebrow: "Transmisie interceptată · Acces: public",
+        h1a: "România se vinde.",
+        h1b: "Bucată cu bucată.",
+        sub: 'Ai vrut vreodată să deții <mark>Clujul</mark> și să le construiești în sfârșit un metrou? Sau să pui o pisică peste tot județul <mark>Vaslui</mark>? În curând vei putea cumpăra orice județ. Dar dacă altcineva plătește de <span class="hl">1.5x</span> mai mult... <em>îl pierzi.</em>',
+        badges: ["42 de Județe", "Licitare 1.5x", "Război Total pe Hartă", "Fără Iertare"],
+        countdownTitle: "Licitațiile se deschid în",
+        days: "Zile", hours: "Ore", minutes: "Min", seconds: "Sec",
+        launched: "Lansare iminentă. Ține-te bine.",
+        progressLabel: "Inițializare sistem",
+        progressStatuses: [
+          "> se încarcă granițele celor 42 de județe...",
+          "> se calibrează haosul...",
+          "> se numără sarmalele din Ilfov...",
+          "> se verifică dacă există metrou în Cluj... 404",
+          "> se antrenează pisica pentru Vaslui...",
+          "> se lustruiește butonul de 1.5x...",
+        ],
+        mapTitle: "Harta operațiunilor",
+        mapStatus: "42 teritorii · 0 proprietari · haos iminent",
+        legendBid: "Ofertă", legendClaim: "Revendicat", legendWar: "Război",
+        footer: "© {year} Județlicit. Nicio hartă nu a fost rănită. Încă.",
+        follow: "Urmărește războiul",
+      },
+      hu: {
+        title: "Județlicit — Románia eladó. Darabonként.",
+        eyebrow: "Elfogott adás · Hozzáférés: nyilvános",
+        h1a: "Románia eladó.",
+        h1b: "Darabonként.",
+        sub: 'Mindig is meg akartad venni <mark>Kolozsvárt</mark>, hogy végre építs nekik egy metrót? Vagy egy macskás képpel lefedni egész <mark>Vaslui</mark> megyét? Hamarosan bármelyik megyét uralhatod. De ha valaki <span class="hl">1.5x</span> többet licitál... <em>buktad a területed.</em>',
+        badges: ["42 Megye", "1.5x Licitlépcső", "Totális Térképháború", "Nincs Kegyelem"],
+        countdownTitle: "A licit indulásáig",
+        days: "Nap", hours: "Óra", minutes: "Perc", seconds: "Mp",
+        launched: "Az indulás küszöbön. Kapaszkodj.",
+        progressLabel: "Rendszer inicializálása",
+        progressStatuses: [
+          "> 42 megye határainak betöltése...",
+          "> káosz kalibrálása...",
+          "> ilfovi töltött káposzták megszámlálása...",
+          "> kolozsvári metró keresése... 404",
+          "> a vaslui macska betanítása...",
+          "> az 1.5x gomb fényesítése...",
+        ],
+        mapTitle: "Hadműveleti térkép",
+        mapStatus: "42 terület · 0 tulajdonos · küszöbön a káosz",
+        legendBid: "Licit", legendClaim: "Elfoglalva", legendWar: "Háború",
+        footer: "© {year} Județlicit. Egyetlen térkép sem sérült meg. Egyelőre.",
+        follow: "Kövesd a háborút",
+      },
+    };
+
+    /* ============================================================
+       MAP DATA
+       Stylised Romania outline, projected from lon/lat into a
+       1000×720 viewBox: x = (lon-20)*100, y = (48.4-lat)*145
+       ============================================================ */
+    const RO_OUTLINE = [
+      [200, 72], [290, 58], [350, 58], [400, 65], [490, 94], [530, 72], [620, 58], [660, 22],
+      [720, 80], [760, 152], [810, 210], [820, 275], [810, 355], [820, 420], [870, 457],
+      [940, 435], [970, 464], [960, 522], [890, 565], [860, 674], [800, 660], [730, 623],
+      [610, 645], [540, 689], [440, 681], [340, 660], [290, 652], [250, 609], [270, 565],
+      [220, 565], [160, 536], [140, 500], [150, 464], [70, 420], [30, 377], [30, 333],
+      [100, 312], [120, 261], [160, 203], [190, 130],
+    ];
+
+    const REGIONS = {
+      cluj:      { x: 360, y: 236, ro: "Cluj",      hu: "Kolozs" },
+      iasi:      { x: 760, y: 180, ro: "Iași",      hu: "Iași" },
+      vaslui:    { x: 773, y: 262, ro: "Vaslui",    hu: "Vaslui" },
+      harghita:  { x: 575, y: 290, ro: "Harghita",  hu: "Hargita" },
+      brasov:    { x: 555, y: 400, ro: "Brașov",    hu: "Brassó" },
+      sibiu:     { x: 415, y: 377, ro: "Sibiu",     hu: "Szeben" },
+      timis:     { x: 125, y: 390, ro: "Timiș",     hu: "Temes" },
+      bucuresti: { x: 612, y: 578, ro: "București", hu: "Bukarest" },
+      constanta: { x: 862, y: 612, ro: "Constanța", hu: "Konstanca" },
+      teleorman: { x: 505, y: 640, ro: null,        hu: null },   // ping only, no label
+      ilfov:     { x: 650, y: 548, ro: null,        hu: null },
+    };
+
+    /* Fake live-feed events. The first three always play first, in order. */
+    const EVENTS = [
+      { tag: "bid",   region: "cluj",      ro: "Cineva din București vrea să cumpere Clujul...",                       hu: "Valaki Bukarestből épp meg akarja venni Kolozsvárt..." },
+      { tag: "claim", region: "vaslui",    ro: "Județul Vaslui tocmai a fost revendicat...",                          hu: "Vaslui megyét épp most foglalták el..." },
+      { tag: "war",   region: "harghita",  ro: "Harghita este în război de oferte...",                                 hu: "Hargita megyében licitháború tört ki..." },
+      { tag: "bid",   region: "ilfov",     ro: "Un anonim a oferit 3 sarmale pentru Ilfov. Oferta e în analiză...",    hu: "Egy névtelen 3 töltött káposztát ajánlott Ilfovért. Elbírálás alatt..." },
+      { tag: "claim", region: "brasov",    ro: "Brașovul a fost acoperit complet cu poze cu urși...",                  hu: "Brassót teljesen beborították medvés képekkel..." },
+      { tag: "bid",   region: "iasi",      ro: "Oferta pentru Iași a crescut de 1.5x. Fostul proprietar plânge...",    hu: "Az Iași-ra tett licit 1.5x-re nőtt. Az előző tulaj sír..." },
+      { tag: "sys",   region: "teleorman", ro: "Bot detectat în Teleorman. Era doar bunica cu tableta nouă...",        hu: "Botot észleltünk Teleormanban. Csak a nagyi volt az új tabletjével..." },
+      { tag: "claim", region: "constanta", ro: "Cineva a pus un logo de shaorma peste toată Constanța...",             hu: "Valaki shaormás logót tett egész Konstancára..." },
+      { tag: "war",   region: "sibiu",     ro: "Sibiu: 47 de oferte în ultimul minut. Situație tensionată...",         hu: "Szeben: 47 licit az utolsó percben. Feszült a helyzet..." },
+      { tag: "bid",   region: "cluj",      ro: "Clujul a fost cumpărat. Metroul: încă în faza de PowerPoint...",       hu: "Kolozsvárt megvették. A metró: még mindig PowerPoint-fázisban..." },
+      { tag: "war",   region: "timis",     ro: "Timișul și Aradul se ceartă pe cine are steagul mai mare...",          hu: "Temes és Arad azon veszekszik, kinek nagyobb a zászlója..." },
+      { tag: "sys",   region: "bucuresti", ro: "București: trafic blocat. Pe hartă și în realitate...",                hu: "Bukarest: dugó. A térképen és a valóságban is..." },
+      { tag: "claim", region: "vaslui",    ro: "Vasluiul a primit o pisică gigantică. Localnicii aprobă...",           hu: "Vaslui kapott egy óriási macskát. A helyiek támogatják..." },
+    ];
+
+    const TAG_META = {
+      bid:   { label: "BID",   color: "c-cyan" },
+      claim: { label: "CLAIM", color: "c-yellow" },
+      war:   { label: "WAR",   color: "c-red" },
+      sys:   { label: "SYS",   color: "c-blue" },
+    };
+
+    /* ============================================================
+       STATE
+       ============================================================ */
+    const state = {
+      lang: CONFIG.DEFAULT_LANG,
+      onLangChange: [],
+    };
+
+    /* ============================================================
+       MODULE: LANGUAGE
+       ============================================================ */
+    const Lang = {
+      init() {
+        const urlLang = new URLSearchParams(location.search).get("lang");
+        const saved = storage.get(CONFIG.STORAGE_KEYS.lang);
+        const initial = [urlLang, saved].find((l) => l && I18N[l]) || CONFIG.DEFAULT_LANG;
+
+        $$(".lang-toggle button").forEach((btn) =>
+          btn.addEventListener("click", () => this.set(btn.dataset.lang, true))
+        );
+        this.set(initial, false);
+      },
+
+      t(key) { return I18N[state.lang][key]; },
+
+      set(lang, animate) {
+        if (!I18N[lang]) return;
+        const apply = () => {
+          state.lang = lang;
+          document.documentElement.lang = lang;
+          document.title = this.t("title");
+          storage.set(CONFIG.STORAGE_KEYS.lang, lang);
+
+          $$("[data-i18n]").forEach((el) => {
+            const val = this.t(el.dataset.i18n);
+            if (typeof val === "string") el.textContent = val.replace("{year}", new Date().getFullYear());
+          });
+          $$("[data-i18n-html]").forEach((el) => { el.innerHTML = this.t(el.dataset.i18nHtml); });
+          $$("[data-i18n-placeholder]").forEach((el) => { el.placeholder = this.t(el.dataset.i18nPlaceholder); });
+
+          const toggle = $(".lang-toggle");
+          toggle.dataset.active = lang;
+          $$("button", toggle).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+
+          state.onLangChange.forEach((fn) => fn(lang));
+        };
+
+        if (animate && !prefersReducedMotion && lang !== state.lang) {
+          document.body.classList.add("is-switching");
+          setTimeout(() => { apply(); document.body.classList.remove("is-switching"); }, 200);
+        } else {
+          apply();
+        }
+      },
+    };
+
+    /* ============================================================
+       MODULE: BADGE TICKER
+       ============================================================ */
+    const Ticker = {
+      init() {
+        this.track = $("#tickerTrack");
+        this.srList = $("#badgesSr");
+        state.onLangChange.push(() => this.render());
+      },
+      render() {
+        const badges = Lang.t("badges");
+        // Repeat enough to overflow wide screens, then duplicate for a seamless loop.
+        const run = [...badges, ...badges, ...badges];
+        const html = run.map((b) => `<span class="ticker-item">${b}</span>`).join("");
+        this.track.innerHTML = html + html;
+        this.srList.innerHTML = badges.map((b) => `<li>${b}</li>`).join("");
+      },
+    };
+
+    /* ============================================================
+       MODULE: MAP (hex grid + regions + pings)
+       ============================================================ */
+    const MapView = {
+      HEX_R: 15,
+      COLORS: ["c-cyan", "c-yellow", "c-red", "c-blue"],
+      hexes: [],
+
+      init() {
+        const d = this.smoothPath(RO_OUTLINE);
+        ["#roClipPath", "#roFill", "#roOutline", "#roDash"].forEach((id) => $(id).setAttribute("d", d));
+
+        this.buildHexes();
+        this.buildRegions();
+        state.onLangChange.push(() => this.renderLabels());
+
+        // Pre-claim a few random territories so the map never looks empty
+        for (let i = 0; i < 26; i++) this.colorHex(pick(this.hexes), pick(this.COLORS), rand(2000, 9000));
+
+        if (!prefersReducedMotion) {
+          setInterval(() => {
+            if (document.hidden) return;
+            const color = Math.random() < 0.5 ? "c-cyan" : pick(this.COLORS);
+            this.colorHex(pick(this.hexes), color, rand(1500, 4500));
+          }, 220);
+        }
+      },
+
+      /* Closed Catmull-Rom spline → cubic Bézier path, for an organic outline */
+      smoothPath(pts) {
+        const n = pts.length;
+        const f = (p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+        let d = `M${f(pts[0])}`;
+        for (let i = 0; i < n; i++) {
+          const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+          const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+          const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+          d += `C${f(c1)} ${f(c2)} ${f(p2)}`;
+        }
+        return d + "Z";
+      },
+
+      inside([x, y], poly = RO_OUTLINE) {
+        let hit = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const [xi, yi] = poly[i], [xj, yj] = poly[j];
+          if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit;
+        }
+        return hit;
+      },
+
+      buildHexes() {
+        const R = this.HEX_R, w = Math.sqrt(3) * R, h = 1.5 * R, r = R * 0.9;
+        const corners = [...Array(6)].map((_, k) => {
+          const a = (Math.PI / 180) * (60 * k - 90);
+          return [Math.cos(a), Math.sin(a)];
+        });
+        const centers = [];
+        for (let row = 0, y = 0; y < 740; row++, y += h) {
+          for (let x = row % 2 ? w / 2 : 0; x < 1020; x += w) {
+            const verts = corners.map(([cx, cy]) => [x + cx * R, y + cy * R]);
+            if (this.inside([x, y]) || verts.some((v) => this.inside(v))) centers.push({ x, y, verts: corners.map(([cx, cy]) => [x + cx * r, y + cy * r]) });
+          }
+        }
+        $("#hexLayer").innerHTML = centers
+          .map((c) => `<path class="hex" d="M${c.verts.map((v) => v.map((n) => n.toFixed(1)).join(",")).join("L")}Z"/>`)
+          .join("");
+        const els = $$("#hexLayer .hex");
+        this.hexes = centers.map((c, i) => ({ x: c.x, y: c.y, el: els[i], timer: null }));
+      },
+
+      buildRegions() {
+        const ns = "http://www.w3.org/2000/svg";
+        const layer = $("#regionLayer");
+        this.regionEls = {};
+        Object.entries(REGIONS).forEach(([key, r]) => {
+          if (!r.ro) return;
+          const g = document.createElementNS(ns, "g");
+          g.setAttribute("class", "region");
+          g.setAttribute("transform", `translate(${r.x},${r.y})`);
+          const dot = document.createElementNS(ns, "circle");
+          dot.setAttribute("r", "4.5");
+          const label = document.createElementNS(ns, "text");
+          label.setAttribute("x", "10");
+          label.setAttribute("y", "7");
+          g.append(dot, label);
+          layer.appendChild(g);
+          this.regionEls[key] = { g, label };
+        });
+      },
+
+      renderLabels() {
+        Object.entries(this.regionEls).forEach(([key, { label }]) => {
+          label.textContent = REGIONS[key][state.lang];
+        });
+      },
+
+      colorHex(hex, color, hold) {
+        if (!hex) return;
+        clearTimeout(hex.timer);
+        hex.el.classList.remove(...this.COLORS);
+        hex.el.classList.add(color);
+        hex.timer = setTimeout(() => hex.el.classList.remove(color), hold);
+      },
+
+      /* Takeover wave: hexes around a region light up from the centre outwards */
+      strike(regionKey, color) {
+        const r = REGIONS[regionKey];
+        if (!r) return;
+        const radius = 60;
+        this.hexes.forEach((hex) => {
+          const dist = Math.hypot(hex.x - r.x, hex.y - r.y);
+          if (dist > radius) return;
+          setTimeout(() => this.colorHex(hex, color, rand(4500, 7000)), prefersReducedMotion ? 0 : dist * 9);
+        });
+
+        Object.values(this.regionEls).forEach(({ g }) => g.classList.remove("active"));
+        const reg = this.regionEls[regionKey];
+        if (reg) reg.g.classList.add("active");
+
+        if (!prefersReducedMotion) this.ping(r.x, r.y, color);
+      },
+
+      ping(x, y, color) {
+        const stroke = { "c-cyan": "#22e6ff", "c-yellow": "#ffe14a", "c-red": "#ff3b5c", "c-blue": "#3d6bff" }[color];
+        const ns = "http://www.w3.org/2000/svg";
+        const g = document.createElementNS(ns, "g");
+        g.setAttribute("transform", `translate(${x},${y})`);
+        g.innerHTML = `<circle class="ping-ring" r="10" stroke="${stroke}"/><circle class="ping-ring r2" r="10" stroke="${stroke}"/>`;
+        $("#pingLayer").appendChild(g);
+        setTimeout(() => g.remove(), 2400);
+      },
+    };
+
+    /* ============================================================
+       MODULE: TERMINAL LIVE FEED
+       ============================================================ */
+    const Terminal = {
+      lines: [],   // { event, time, el }
+      queue: [],
+      lastIndex: -1,
+
+      init() {
+        this.el = $("#terminal");
+        this.queue = [0, 1, 2]; // required intro events
+        state.onLangChange.push(() => this.relabel());
+
+        this.push(); // first line immediately
+        setInterval(() => { if (!document.hidden) this.push(); }, CONFIG.TERMINAL_INTERVAL_MS);
+
+        const start = Date.now();
+        const uptime = $("#uptime");
+        setInterval(() => {
+          const s = Math.floor((Date.now() - start) / 1000);
+          uptime.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+        }, 1000);
+      },
+
+      nextIndex() {
+        if (this.queue.length) return this.queue.shift();
+        let i;
+        do { i = Math.floor(Math.random() * EVENTS.length); } while (i === this.lastIndex);
+        return i;
+      },
+
+      push() {
+        const idx = this.nextIndex();
+        this.lastIndex = idx;
+        const event = EVENTS[idx];
+        const meta = TAG_META[event.tag];
+        const now = new Date();
+        const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+        const li = document.createElement("li");
+        li.className = "term-line";
+        li.innerHTML =
+          `<span class="t-time">[${time}]</span>` +
+          `<span class="t-tag t-${event.tag}">${meta.label}</span>` +
+          `<span class="t-msg"></span>`;
+        li.querySelector(".t-msg").textContent = event[state.lang];
+        this.el.appendChild(li);
+        this.lines.push({ event, el: li });
+
+        while (this.lines.length > CONFIG.TERMINAL_MAX_LINES) this.lines.shift().el.remove();
+
+        MapView.strike(event.region, meta.color);
+      },
+
+      relabel() {
+        this.lines.forEach(({ event, el }) => { el.querySelector(".t-msg").textContent = event[state.lang]; });
+      },
+    };
+
+    /* ============================================================
+       MODULE: COUNTDOWN
+       ============================================================ */
+    const Countdown = {
+      init() {
+        this.target = new Date(CONFIG.LAUNCH_DATE).getTime();
+        this.els = {
+          d: $("#cdDays"), h: $("#cdHours"), m: $("#cdMinutes"), s: $("#cdSeconds"),
+        };
+        this.tick();
+        this.timer = setInterval(() => this.tick(), 1000);
+      },
+      set(el, val) {
+        if (el.textContent === val) return;
+        el.textContent = val;
+        if (prefersReducedMotion) return;
+        el.classList.remove("tick");
+        void el.offsetWidth; // restart animation
+        el.classList.add("tick");
+      },
+      tick() {
+        const diff = Math.max(0, this.target - Date.now());
+        if (diff === 0) {
+          $("#ctaCard").classList.add("is-launched");
+          clearInterval(this.timer);
+          return;
+        }
+        const s = Math.floor(diff / 1000);
+        this.set(this.els.d, pad(Math.floor(s / 86400)));
+        this.set(this.els.h, pad(Math.floor(s / 3600) % 24));
+        this.set(this.els.m, pad(Math.floor(s / 60) % 60));
+        this.set(this.els.s, pad(s % 60));
+      },
+    };
+
+    /* ============================================================
+       MODULE: FAKE "SYSTEM INITIALIZATION" PROGRESS
+       Creeps from 94% towards 99.9% — never quite reaches 100. Classic.
+       ============================================================ */
+    const Progress = {
+      value: 94.0,
+      statusIndex: 0,
+      init() {
+        this.fill = $("#progressFill");
+        this.label = $("#progressValue");
+        this.bar = $("#progressBar");
+        this.status = $("#progressStatus");
+        this.render();
+        this.renderStatus();
+        state.onLangChange.push(() => this.renderStatus());
+
+        setInterval(() => {
+          if (document.hidden) return;
+          const remaining = 99.9 - this.value;
+          this.value = Math.min(99.9, this.value + remaining * rand(0.01, 0.05));
+          this.render();
+        }, 1800);
+
+        setInterval(() => {
+          this.statusIndex = (this.statusIndex + 1) % Lang.t("progressStatuses").length;
+          this.status.style.opacity = "0";
+          setTimeout(() => { this.renderStatus(); this.status.style.opacity = "1"; }, 300);
+        }, 4200);
+      },
+      render() {
+        const v = this.value.toFixed(1);
+        this.fill.style.width = `${v}%`;
+        this.label.textContent = `${v}%`;
+        this.bar.setAttribute("aria-valuenow", v);
+      },
+      renderStatus() {
+        this.status.textContent = Lang.t("progressStatuses")[this.statusIndex];
+      },
+    };
+
+    /* ============================================================
+       BOOT
+       ============================================================ */
+    Ticker.init();
+    MapView.init();
+    Progress.init();
+    Lang.init();       // applies translations + fires onLangChange listeners
+    Countdown.init();
+    Terminal.init();
+  })();
+  </script>
+</body>
+</html>
